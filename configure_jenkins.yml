@@ -23,7 +23,7 @@
       service:
         name: jenkins
         state: restarted
-      when: jenkins_restart_required
+      when: jenkins_restart_required | bool
 
     - name: Wait for Jenkins to start up
       uri:
@@ -37,7 +37,7 @@
       until: >
         'status' in jenkins_service_status and
         jenkins_service_status['status'] == 200
-      when: jenkins_restart_required
+      when: jenkins_restart_required | bool
 
     - name: Reset the fact
       set_fact:
