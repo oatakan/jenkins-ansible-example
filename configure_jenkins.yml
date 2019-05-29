@@ -4,7 +4,7 @@
     - name: enable ansible tower plugin
       jenkins_plugin:
         name: ansible-tower
-        state: enabled
+        state: latest
         url_username: admin
         url_password: admin
         validate_certs: no
