@@ -5,6 +5,9 @@
       jenkins_plugin:
         name: ansible-tower
         state: enabled
+        url_username: admin
+        url_password: admin
+        validate_certs: no
       register: jenkins_tower_plugin
 
     - name: Initiate the fact
