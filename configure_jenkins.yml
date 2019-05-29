@@ -23,7 +23,7 @@
       service:
         name: jenkins
         state: restarted
-      #when: jenkins_restart_required
+      when: jenkins_restart_required
 
     - name: Wait for Jenkins to start up
       uri:
