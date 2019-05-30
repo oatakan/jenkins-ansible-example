@@ -1,0 +1,12 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<org.jenkinsci.plugins.ansible__tower.AnsibleTowerGlobalConfig plugin="ansible-tower@0.9.2">
+  <towerInstallations>
+    <org.jenkinsci.plugins.ansible__tower.util.TowerInstallation>
+      <towerDisplayName>Tower</towerDisplayName>
+      <towerURL>{{ lookup('env', 'TOWER_HOST') | default('localhost') }}"</towerURL>
+      <towerCredentialsId>ansible_tower</towerCredentialsId>
+      <towerTrustCert>true</towerTrustCert>
+      <enableDebugging>false</enableDebugging>
+    </org.jenkinsci.plugins.ansible__tower.util.TowerInstallation>
+  </towerInstallations>
+</org.jenkinsci.plugins.ansible__tower.AnsibleTowerGlobalConfig>

@@ -1,0 +1,45 @@
+---
+
+- name: enable ansible tower plugin
+  jenkins_plugin:
+    name: ansible-tower
+    state: latest
+    url_username: admin
+    url_password: admin
+    validate_certs: no
+  register: jenkins_tower_plugin
+
+- name: Initiate the fact
+  set_fact:
+    jenkins_restart_required: no
+
+- name: Check if restart is required
+  set_fact:
+    jenkins_restart_required: yes
+  when: jenkins_tower_plugin.changed
+
+- name: Restart Jenkins if required
+  service:
+    name: jenkins
+    state: restarted
+  when: jenkins_restart_required | bool
+
+- name: Wait for Jenkins to start up
+  uri:
+    url: http://localhost:8080
+    status_code: 200
+    timeout: 5
+  register: jenkins_service_status
+  # Keep trying for 5 mins in 5 sec intervals
+  retries: 60
+  delay: 5
+  until: >
+    'status' in jenkins_service_status and
+    jenkins_service_status['status'] == 200
+  when: jenkins_restart_required | bool
+
+- name: Reset the fact
+  set_fact:
+    jenkins_restart_required: no
+  when: jenkins_restart_required
+

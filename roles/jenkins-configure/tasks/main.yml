@@ -1,0 +1,13 @@
+---
+
+- include_tasks: plugin.yml
+
+- name: create tower configuration
+  template:
+    src: configure_ansible_tower.xml.j2
+    dest: "{{ jenkins2_home_directory }}/org.jenkinsci.plugins.ansible_tower.AnsibleTower.xml"
+    owner: "{{ jenkins2_user }}"
+    group: "{{ jenkins2_user }}"
+    mode: 0644
+  become: True
+
