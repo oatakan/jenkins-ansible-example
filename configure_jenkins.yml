@@ -11,6 +11,10 @@
   pre_tasks:
     - debug:
         var: tower_job_inventory_name
+    - debug:
+        var: tower_inventory_name
+    - debug:
+        var: tower_inventory
 
   roles:
     - jenkins-configure
