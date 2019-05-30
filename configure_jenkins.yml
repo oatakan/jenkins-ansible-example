@@ -8,9 +8,5 @@
         username: "{{ lookup('env', 'TOWER_USERNAME') | default('admin') }}"
         password: "{{ lookup('env', 'TOWER_PASSWORD') | default('admin') }}"
 
-  pre_tasks:
-    - debug:
-        var: hostvars[inventory_hostname]
-
   roles:
     - jenkins-configure
