@@ -2,3 +2,8 @@
 
 jenkins2_home_directory: /var/lib/jenkins
 jenkins2_user: jenkins
+jenkins2_config_http_port: 8080
+jenkins2_cli_username: admin
+jenkins2_cli_password: admin
+
+tower_job_template_name: bb-u1-win-mssql-vmware-ci/cd

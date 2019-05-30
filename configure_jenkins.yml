@@ -1,4 +1,11 @@
 - hosts: all
-
+  vars:
+    jenkins2_credentials:
+      ansible_tower:
+        type: 'password'
+        id: 'ansible_tower'
+        description: 'ansible tower credentials'
+        username: "{{ lookup('env', 'TOWER_USERNAME') | default('admin') }}"
+        password: "{{ lookup('env', 'TOWER_PASSWORD') | default('admin') }}"
   roles:
     - jenkins-configure

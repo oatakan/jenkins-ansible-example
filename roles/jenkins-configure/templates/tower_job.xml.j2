@@ -1,0 +1,38 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <description>Test Tower Project</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.7"/>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.5.12">
+      <gitLabConnection></gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <org.jenkinsci.plugins.ansible__tower.AnsibleTower plugin="ansible-tower@0.9.2">
+      <towerServer>Tower</towerServer>
+      <jobTemplate>{{ tower_job_template_name }}</jobTemplate>
+      <extraVars>db_backup_drive: &apos;C:&apos;</extraVars>
+      <jobTags></jobTags>
+      <skipJobTags></skipJobTags>
+      <jobType>run</jobType>
+      <limit></limit>
+      <inventory></inventory>
+      <credential></credential>
+      <verbose>false</verbose>
+      <importTowerLogs>true</importTowerLogs>
+      <removeColor>false</removeColor>
+      <templateType>workflow</templateType>
+      <importWorkflowChildLogs>true</importWorkflowChildLogs>
+    </org.jenkinsci.plugins.ansible__tower.AnsibleTower>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

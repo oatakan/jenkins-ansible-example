@@ -3,7 +3,7 @@
   <towerInstallations>
     <org.jenkinsci.plugins.ansible__tower.util.TowerInstallation>
       <towerDisplayName>Tower</towerDisplayName>
-      <towerURL>{{ lookup('env', 'TOWER_HOST') | default('localhost') }}"</towerURL>
+      <towerURL>https://{{ lookup('env', 'TOWER_HOST') | default('localhost') }}</towerURL>
       <towerCredentialsId>ansible_tower</towerCredentialsId>
       <towerTrustCert>true</towerTrustCert>
       <enableDebugging>false</enableDebugging>
