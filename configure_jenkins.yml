@@ -7,5 +7,10 @@
         description: 'ansible tower credentials'
         username: "{{ lookup('env', 'TOWER_USERNAME') | default('admin') }}"
         password: "{{ lookup('env', 'TOWER_PASSWORD') | default('admin') }}"
+
+  pre_tasks:
+    - debug:
+        var: tower_job_inventory
+
   roles:
     - jenkins-configure
