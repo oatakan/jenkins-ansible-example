@@ -1,0 +1,14 @@
+---
+nodes:
+  - name: jenkins
+    role: jenkins
+    app_name: jenkins_tower_demo
+    pod_name: "{{ ec2_name_prefix }}"
+    instance_type: t2.medium
+    #image: ami-85241def #rhel7
+    image: ami-61bbf104 #centos7
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          volume_size: 10
+          delete_on_termination: true
