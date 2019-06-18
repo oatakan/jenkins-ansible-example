@@ -6,7 +6,8 @@ nodes:
     pod_name: "{{ ec2_name_prefix }}"
     instance_type: t2.medium
     #image: ami-85241def #rhel7
-    image: ami-61bbf104 #centos7
+    #image: ami-61bbf104 #centos7
+    image: ami-01ed306a12b7d1c96 #updated centos7 image
     volumes:
       - device_name: /dev/sda1
         ebs:
