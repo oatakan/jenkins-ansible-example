@@ -10,14 +10,11 @@
           "tag:app": jenkins_tower_demo
       register: ec2_instances
 
-    - debug:
-        var: ec2_instances
-
     - name: Get record for router ELB DNS Entry
       route53:
         command: get
         zone: "{{ hosted_zone_domain_name }}"
-        record: "{{ subdomain | default(instances.results[0].invocation.module_args.instance_tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}"
+        record: "{{ subdomain | default(ec2_instances[0].tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}"
         type: A
       register: routerelbrec
       when: hosted_zone_domain_name is defined and ec2_name_prefix is defined
@@ -28,11 +25,11 @@
         command: create
         overwrite: yes
         zone: "{{ hosted_zone_domain_name }}"
-        record: "{{ subdomain | default(instances.results[0].invocation.module_args.instance_tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}"
+        record: "{{ subdomain | default(ec2_instances[0].tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}"
         type: A
-        value: "{{ instances.results[0].instances[0].public_ip_address }}"
+        value: "{{ ec2_instances[0].public_ip_address }}"
       when: routerelbrec.set is defined and "{} == routerelbrec.set"
 
     - name: output url
       debug:
-        msg: 'application is available at https://{{ subdomain | default(instances.results[0].invocation.module_args.instance_tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}/'
+        msg: 'application is available at https://{{ subdomain | default(ec2_instances[0].tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}/'
