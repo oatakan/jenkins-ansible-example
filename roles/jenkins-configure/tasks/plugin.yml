@@ -18,13 +18,16 @@
     jenkins_restart_required: yes
   when: jenkins_tower_plugin.changed
 
-- pause:
-    seconds: 900
+- name: Stop Jenkins first
+  service:
+    name: jenkins
+    state: stopped
+  when: jenkins_restart_required | bool
 
 - name: Restart Jenkins if required
   service:
     name: jenkins
-    state: restarted
+    state: started
   register: restart_jenkins
   until: restart_jenkins is success
   delay: 3
