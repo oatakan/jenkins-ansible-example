@@ -19,7 +19,7 @@
   when: jenkins_tower_plugin.changed
 
 - pause:
-    seconds: 240
+    seconds: 900
 
 - name: Restart Jenkins if required
   service:
@@ -30,6 +30,7 @@
   delay: 3
   retries: 5
   when: jenkins_restart_required | bool
+  ignore_errors: yes
 
 - name: Wait for Jenkins to start up
   uri:
