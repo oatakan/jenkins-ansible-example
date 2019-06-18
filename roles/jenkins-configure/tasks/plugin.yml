@@ -18,6 +18,9 @@
     jenkins_restart_required: yes
   when: jenkins_tower_plugin.changed
 
+- pause:
+    seconds: 240
+
 - name: Restart Jenkins if required
   service:
     name: jenkins
