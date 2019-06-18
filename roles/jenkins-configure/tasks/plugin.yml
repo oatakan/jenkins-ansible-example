@@ -22,6 +22,10 @@
   service:
     name: jenkins
     state: restarted
+  register: restart_jenkins
+  until: restart_jenkins is success
+  delay: 3
+  retries: 5
   when: jenkins_restart_required | bool
 
 - name: Wait for Jenkins to start up
