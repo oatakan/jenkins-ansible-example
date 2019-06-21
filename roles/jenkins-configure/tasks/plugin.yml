@@ -23,6 +23,7 @@
     name: jenkins
     state: stopped
   when: jenkins_restart_required | bool
+  ignore_errors: yes
 
 - name: Restart Jenkins if required
   service:
