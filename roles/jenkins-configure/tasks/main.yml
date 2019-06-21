@@ -28,3 +28,4 @@
     user: "{{ jenkins2_cli_username }}"
     url: "http://localhost:{{ jenkins2_config_http_port }}"
 
+- include_tasks: restart.yml
