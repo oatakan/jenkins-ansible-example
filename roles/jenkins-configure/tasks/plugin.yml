@@ -22,8 +22,11 @@
   service:
     name: jenkins
     state: stopped
+  register: stop_jenkins
+  until: stop_jenkins is success
+  delay: 5
+  retries: 60
   when: jenkins_restart_required | bool
-  ignore_errors: yes
 
 - name: Restart Jenkins if required
   service:
