@@ -1,4 +1,5 @@
 - hosts: all
+  become: yes
   vars:
     jenkins2_credentials:
       ansible_tower:
