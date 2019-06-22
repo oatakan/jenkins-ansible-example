@@ -13,12 +13,16 @@
     - jenkins_service_status['status'] == 200
 
 - name: Stop Jenkins first
-  service:
-    name: jenkins
-    state: stopped
+  command: systemctl stop jenkins
   ignore_errors: yes
 
-- name: Restart Jenkins if required
+#- name: Stop Jenkins first
+#  service:
+#    name: jenkins
+#    state: stopped
+#  ignore_errors: yes
+
+- name: Restart Jenkins
   service:
     name: jenkins
     state: started
