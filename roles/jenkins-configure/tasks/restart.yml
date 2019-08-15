@@ -10,11 +10,10 @@
 - name: Wait for Jenkins to start up
   uri:
     url: http://localhost:{{ jenkins2_config_http_port }}
+    return_content: yes
     status_code: 200
     timeout: 5
   register: jenkins_service_status
   retries: 60
   delay: 5
-  until:
-    - ('status' in jenkins_service_status)
-    - jenkins_service_status['status'] == 200
+  until: not jenkins_service_status.failed
