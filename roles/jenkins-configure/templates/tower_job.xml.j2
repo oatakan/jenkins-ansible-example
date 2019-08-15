@@ -37,8 +37,8 @@
   <builders>
     <org.jenkinsci.plugins.ansible__tower.AnsibleTower plugin="ansible-tower@0.9.2">
       <towerServer>Tower</towerServer>
-      <jobTemplate>{{ tower_job_template_name }}</jobTemplate>
-      <extraVars>{{ tower_job_template_extra_vars }}</extraVars>
+      <jobTemplate>{{ tower_job_template_name | default('') }}</jobTemplate>
+      <extraVars>{{ tower_job_template_extra_vars | default('') }}</extraVars>
       <jobTags></jobTags>
       <skipJobTags></skipJobTags>
       <jobType>run</jobType>
