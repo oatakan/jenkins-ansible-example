@@ -1,6 +1,7 @@
 - hosts: all
   become: yes
   vars:
+    tower_job_scm_url: https://github.com/oatakan/MusicStore.git
     jenkins2_credentials:
       ansible_tower:
         type: 'password'
@@ -8,6 +9,5 @@
         description: 'ansible tower credentials'
         username: "{{ lookup('env', 'TOWER_USERNAME') | default('admin') }}"
         password: "{{ lookup('env', 'TOWER_PASSWORD') | default('admin') }}"
-
   roles:
     - jenkins-configure
