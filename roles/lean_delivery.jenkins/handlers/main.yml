@@ -16,7 +16,7 @@
   become: true
 
 - name: Wait for Jenkins
-  include_tasks: wait_for.yml
+  include_tasks: ../handlers/wait_for.yml
 
 - name: Wait for Jenkins Final
   uri:
