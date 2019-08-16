@@ -14,7 +14,7 @@
   ignore_errors: yes
 
 - block:
-    - name: Restart Jenkins
+    - name: Restart Jenkins inside block
       service:
         name: jenkins
         state: restarted
