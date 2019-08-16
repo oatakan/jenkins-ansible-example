@@ -11,12 +11,13 @@
       until: login_page.status == 200
       retries: 60
       delay: 5
+  ignore_errors: yes
 
-  rescue:
-    - name: Start Jenkins
-      service:
-        name: jenkins
-        state: started
-        enabled: true
-      notify: Wait for Jenkins Final
-      become: true
+- name: Start Jenkins
+  service:
+    name: jenkins
+    state: started
+    enabled: true
+  notify: Wait for Jenkins Final
+  become: true
+  when: login_page is failed
