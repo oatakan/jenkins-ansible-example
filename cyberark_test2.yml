@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: no
+  roles:
+    - cyberark_get_credential
+
+- hosts: all
+  tasks:
+    - name: test connection
+      ping:
