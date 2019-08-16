@@ -16,4 +16,4 @@
 
 - src: lean_delivery.java
 
-- src: lean_delivery.jenkins
+#- src: lean_delivery.jenkins
