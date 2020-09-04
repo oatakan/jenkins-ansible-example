@@ -2,7 +2,7 @@
   become: no
   tasks:
     - name: get ec2 instance information
-      ec2_instance_facts:
+      ec2_instance_info:
         region: "{{ ec2_region }}"
         filters:
           vpc-id: "{{ ec2_vpc_id }}"
@@ -14,6 +14,7 @@
         region: "{{ ec2_region }}"
         state: absent
         instance_ids: "{{ ec2_instances.instances | map(attribute='instance_id') | list }}"
+      when: ec2_instances.instances | length > 0
 
     - name: Get record for router ELB DNS Entry
       route53:
