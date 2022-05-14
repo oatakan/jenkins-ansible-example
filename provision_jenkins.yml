@@ -1,0 +1,39 @@
+- hosts: all
+  become: yes
+  vars:
+    jenkins_admin_username: admin
+    jenkins_admin_password: 'admin'
+    jenkins2_cli_username: "{{ jenkins_admin_username }}"
+    jenkins2_cli_password: "{{ jenkins_admin_password }}"
+    jenkins2_config_http_port: 8080
+    jenkins2_credentials_enabled: True
+    jenkins2_credentials:
+      githubtoken:
+        type: 'secrettext'
+        id: 'github_token'
+        description: 'github credentials'
+        token: "{{ github_token | default('') }}"
+    jenkins2_github_enabled: True
+    github_external_url: https://api.github.com
+    github_manage_hooks: False
+    jenkins2_github_token_cred: github_token
+  pre_tasks:
+    - name: import epel gpg key
+      rpm_key:
+        state: present
+        key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+
+    - include_role:
+        name: oatakan.rhn
+      when:
+        - ansible_os_family == 'RedHat'
+        - ec2_image_id is undefined
+
+    - include_role:
+        name: "{{ role_name }}"
+      loop_control:
+        loop_var: role_name
+      loop:
+        - oatakan.rhel_upgrade
+        - geerlingguy.java
+        - lean_delivery.jenkins
