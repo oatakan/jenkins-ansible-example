@@ -90,6 +90,14 @@
   loop_control:
     loop_var: platform
 
+- name: Create custom init scripts directory.
+  file:
+    path: "{{ jenkins2_home_directory }}/init.groovy.d"
+    state: directory
+    owner: "{{ jenkins2_process_user }}"
+    group: "{{ jenkins2_process_group }}"
+    mode: 0775
+
 - name: Jenkins Installation
   package:
     name: '{{ jenkins2_package_version }}'
@@ -122,14 +130,6 @@
   when:
     - jenkins_was_installed is defined
     - jenkins_was_installed.changed | bool
-
-- name: Create custom init scripts directory.
-  file:
-    path: "{{ jenkins2_home_directory }}/init.groovy.d"
-    state: directory
-    owner: "{{ jenkins2_process_user }}"
-    group: "{{ jenkins2_process_group }}"
-    mode: 0775
 
 - name: Trigger handlers immediately in case Jenkins was installed
   meta: flush_handlers
