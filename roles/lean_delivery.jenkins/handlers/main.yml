@@ -8,6 +8,15 @@
     group: "{{ jenkins2_process_group }}"
     mode: 0775
   register: jenkins_users_config
+  become: true
+
+- name: Reload Jenkins Service
+  systemd:
+    name: jenkins
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  become: true
 
 - name: Restart Jenkins
   service:

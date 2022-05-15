@@ -120,6 +120,15 @@
   notify:
     - Restart Jenkins
 
+# for some reason java_opts doesn't get updated from the config file
+- name: make sure java opts set correctly on the service
+  replace:
+    path: '{{ jenkins_systemd_unit_file }}'
+    regexp: '^(Environment=\"JAVA_OPTS=).*(\")$'
+    replace: '\1{{ jenkins2_config_java_options }}\2'
+  notify:
+    - Reload Jenkins Service
+
 - name: Jenkins confuguration
   include_tasks: '{{ platform }}'
   with_first_found:

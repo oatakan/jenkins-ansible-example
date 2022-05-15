@@ -1,6 +1,7 @@
 ---
 jenkins_epel_url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm'
 jenkins_config_service_path: /etc/sysconfig/jenkins
+jenkins_systemd_unit_file: /usr/lib/systemd/system/jenkins.service
 jenkins_requirements:
   - gcc
   - python{{ ansible_facts.python.version.major }}-devel

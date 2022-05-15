@@ -22,6 +22,7 @@
       rpm_key:
         state: present
         key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+      when: ansible_os_family in ['RedHat', 'Rocky']
 
     - include_role:
         name: oatakan.rhn
@@ -30,10 +31,13 @@
         - ec2_image_id is undefined
 
     - include_role:
+        name: oatakan.rhel_upgrade
+      when: ansible_os_family in ['RedHat', 'Rocky']
+
+    - include_role:
         name: "{{ role_name }}"
       loop_control:
         loop_var: role_name
       loop:
-        - oatakan.rhel_upgrade
         - geerlingguy.java
         - lean_delivery.jenkins

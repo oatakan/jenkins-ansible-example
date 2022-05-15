@@ -3,6 +3,7 @@ import hudson.security.*
 import jenkins.model.*
 
 def instance = Jenkins.getInstance()
+
 def hudsonRealm = new HudsonPrivateSecurityRealm(false)
 def users = hudsonRealm.getAllUsers()
 users_s = users.collect { it.toString() }
@@ -26,3 +27,5 @@ else {
     instance.setAuthorizationStrategy(strategy)
     instance.save()
 }
+
+instance.setInstallState(InstallState.INITIAL_SETUP_COMPLETED)
