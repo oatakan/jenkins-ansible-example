@@ -1,7 +1,14 @@
-- name: remove route53
-  hosts: localhost
-  become: false
-  tasks:
+- name: remove Jenkins instances
+  hosts: all
+  gather_facts: false
+  connection: local
+  vars:
+    ansible_ssh_password: ''
+  become: no
+  vars_files:
+    - node-config/nodes-ec2.yml
+
+  pre_tasks:
     - name: get record for router DNS entry
       community.aws.route53:
         command: get
@@ -10,6 +17,7 @@
         type: A
       register: routerelbrec
       when: hosted_zone_domain_name is defined and ec2_name_prefix is defined
+      delegate_to: localhost
 
     - name: delete DNS entry if it doesn't exist
       community.aws.route53:
@@ -21,18 +29,7 @@
         alias: True
         alias_hosted_zone_id: "{{ routerelbrec.set.alias_hosted_zone_id }}"
       when: routerelbrec.set is defined and "{} != routerelbrec.set" and routerelbrec.set.alias_hosted_zone_id is defined
-
-
-- name: remove Jenkins instances
-  hosts: all
-  gather_facts: false
-  connection: local
-  vars:
-    ansible_ssh_password: ''
-  become: no
-  vars_files:
-    - node-config/nodes-ec2.yml
-
+      delegate_to: localhost
   roles:
     - role: ansible-role-ec2
       role_action: deprovision
