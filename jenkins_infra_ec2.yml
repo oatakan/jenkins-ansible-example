@@ -1,5 +1,5 @@
 - hosts: localhost
-  become: no
+  become: false
   vars_files:
     - node-config/nodes-ec2.yml
   roles:
