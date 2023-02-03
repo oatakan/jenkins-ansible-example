@@ -9,7 +9,7 @@
     - node-config/nodes-{{ provider }}.yml
 
   roles:
-    - role: ansible-role-{{ provider }}
+    - role: ansible-role-{{ provider_role | default(provider) }}
       role_action: deprovision
       delegate_to: localhost
       run_once: yes
