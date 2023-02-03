@@ -10,4 +10,4 @@
         name: ec2-find-amis
       when: provider == 'ec2'
   roles:
-    - ansible-role-{{ provider }}
+    - ansible-role-{{ provider_role | default(provider) }}
