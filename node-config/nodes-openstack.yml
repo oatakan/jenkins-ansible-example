@@ -5,7 +5,7 @@ nodes:
     app_name: jenkins_tower_demo
     environment: dev
     flavor: m1.small
-    image: "{{ infra_template_name|default('rocky91-x64-v1') }}"
+    image: "{{ infra_template_name|default('rhel93-x64-v1') }}"
     key_name: ansible-oatakan
     volume_size: 40
     nics:
