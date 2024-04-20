@@ -1,5 +1,5 @@
 - hosts: all
-  become: yes
+  become: true
   vars:
     jenkins_admin_username: admin
     jenkins_admin_password: 'admin'
@@ -17,6 +17,37 @@
     github_external_url: https://api.github.com
     github_manage_hooks: False
     jenkins2_github_token_cred: github_token
+    jenkins_http_port: '{{ jenkins2_config_http_port }}'
+    jenkins_plugins:
+      - ant
+      - antisamy-markup-formatter
+      - blueocean
+      - configuration-as-code
+      - build-timeout
+      - cloudbees-folder
+      - credentials-binding
+      - ec2
+      - email-ext
+      - file-operations
+      - git
+      - gitlab-plugin
+      - gradle
+      - ldap
+      - mailer
+      - matrix-auth
+      - pipeline-stage-view
+      - pipeline-utility-steps
+      - ssh-agent
+      - ssh-slaves
+      - timestamper
+      - workflow-aggregator
+      - ws-cleanup
+      - job-dsl
+      - checkstyle
+      - log-parser
+      - pmd
+      - warnings-ng
+      - permissive-script-security
   tasks:
     - name: import epel gpg key
       rpm_key:
@@ -40,4 +71,35 @@
         loop_var: role_name
       loop:
         - geerlingguy.java
-        - lean_delivery.jenkins
+        - geerlingguy.jenkins
+#        - lean_delivery.jenkins
+
+    - name: pip
+      block:
+        - name: install pip
+          package:
+            name: python{{ ansible_facts.python.version.major }}-pip
+            state: present
+          register: pip_install_status
+          until: pip_install_status is succeeded
+
+        - name: upgrade pip
+          pip:
+            name:
+              - pip
+            state: present
+            extra_args: --upgrade
+            executable: 'pip{{ ansible_facts.python.version.major }}'
+          register: pip_upgrade
+          until: pip_upgrade is success
+
+        - name: install pip packages
+          pip:
+            name:
+              - python-jenkins
+              - lxml
+            state: present
+            executable: 'pip{{ ansible_facts.python.version.major }}'
+          register: install_pip_packages
+          until: install_pip_packages is success
+      become: true
