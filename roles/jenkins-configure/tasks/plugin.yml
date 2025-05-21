@@ -7,4 +7,6 @@
     url_password: "{{ jenkins2_cli_password }}"
     validate_certs: false
   register: jenkins_tower_plugin
-  notify: Restart Jenkins if needed
+  notify:
+    - Restart Jenkins
+    - Wait for Jenkins to start up
