@@ -1,32 +1,32 @@
 ---
 # handlers file for ansible-role-jenkins
 - name: Configure default users
-  template:
+  ansible.builtin.template:
     src: basic-security.groovy.j2
     dest: "{{ jenkins2_home_directory }}/init.groovy.d/basic-security.groovy"
     owner: "{{ jenkins2_process_user }}"
     group: "{{ jenkins2_process_group }}"
-    mode: 0775
+    mode: "0775"
   register: jenkins_users_config
   become: true
 
 - name: Reload Jenkins Service
-  systemd:
+  ansible.builtin.systemd:
     name: jenkins
     state: started
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
   become: true
 
 - name: Restart Jenkins
-  service:
+  ansible.builtin.service:
     name: jenkins
     state: restarted
   notify: Wait for Jenkins
   become: true
 
 - name: Start Jenkins
-  service:
+  ansible.builtin.service:
     name: jenkins
     state: started
     enabled: true
@@ -34,9 +34,8 @@
   become: true
 
 - name: Wait for Jenkins
-  uri:
-    url: "{{ jenkins2_config_proto }}://{{ jenkins2_host_address }}:\
-      {{ jenkins2_config_http_port }}{{ jenkins2_context_path | default('') }}/login"
+  ansible.builtin.uri:
+    url: "{{ jenkins2_config_proto }}://{{ jenkins2_host_address }}:{{ jenkins2_config_http_port }}{{ jenkins2_context_path | default('') }}/login"
     status_code:
       - 200
   register: login_page
@@ -45,16 +44,15 @@
   delay: 5
 
 - name: Restart Jenkins with HTTPS
-  service:
+  ansible.builtin.service:
     name: jenkins
     state: restarted
   notify: Wait for Jenkins with HTTPS
   become: true
 
 - name: Wait for Jenkins with HTTPS
-  uri:
-    url: "https://{{ ansible_default_ipv4.address }}:\
-      {{ jenkins2_config_https_port }}{{ jenkins2_context_path | default('') }}/login"
+  ansible.builtin.uri:
+    url: "https://{{ ansible_default_ipv4.address }}:{{ jenkins2_config_https_port }}{{ jenkins2_context_path | default('') }}/login"
     status_code: 200
     validate_certs: false
   register: login_page

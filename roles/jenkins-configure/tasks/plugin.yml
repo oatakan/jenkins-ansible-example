@@ -1,27 +1,12 @@
 ---
-
-- name: enable ansible tower plugin
-  jenkins_plugin:
+- name: Enable Ansible Tower plugin
+  community.general.jenkins_plugin:
     name: ansible-tower
-    state: latest
-    url_username: '{{ jenkins2_cli_username }}'
-    url_password: '{{ jenkins2_cli_password }}'
-    validate_certs: no
+    state: present
+    url_username: "{{ jenkins2_cli_username }}"
+    url_password: "{{ jenkins2_cli_password }}"
+    validate_certs: false
   register: jenkins_tower_plugin
-
-- name: Initiate the fact
-  set_fact:
-    jenkins_restart_required: no
-
-- name: Check if restart is required
-  set_fact:
-    jenkins_restart_required: yes
-  when: jenkins_tower_plugin.changed
-
-- include_tasks: restart.yml
-  when: jenkins_restart_required | bool
-
-- name: Reset the fact
-  set_fact:
-    jenkins_restart_required: no
-
+  notify:
+    - Restart Jenkins
+    - Wait for Jenkins to start up

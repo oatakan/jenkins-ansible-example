@@ -11,4 +11,4 @@ jenkins2_cli_password: "{{ jenkins_admin_password }}"
 
 tower_job_template_name: bb-u1-win-mssql-vmware-ci/cd
 
-tower_job_scm_url: ''
+tower_job_scm_url: ""

@@ -1,3 +1,4 @@
+---
 - hosts: localhost
   become: false
   tasks:
@@ -12,7 +13,7 @@
     - name: create DNS entry if it doesn't exist
       community.aws.route53:
         state: present
-        overwrite: yes
+        overwrite: true
         zone: "{{ hosted_zone_domain_name }}"
         record: "{{ subdomain | default(ec2_instances.instances[0].tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}"
         type: A
@@ -25,4 +26,5 @@
 
     - name: output url
       debug:
-        msg: 'application is available at http://{{ subdomain | default(ec2_instances.instances[0].tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name }}/'
+        msg: "application is available at http://{{ subdomain | default(ec2_instances.instances[0].tags.role | lower) }}.{{ ec2_name_prefix | lower }}.{{ hosted_zone_domain_name
+          }}/"

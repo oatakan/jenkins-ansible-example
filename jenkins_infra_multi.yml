@@ -1,5 +1,6 @@
+---
 - hosts: localhost
-  become: no
+  become: false
   vars:
     provider: vmware
   vars_files:

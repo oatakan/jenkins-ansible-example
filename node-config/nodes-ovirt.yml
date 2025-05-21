@@ -9,7 +9,7 @@ nodes:
     app_name: jenkins_tower_demo
     environment: dev
     networks:
-    - name: ovirtmgmt
+      - name: ovirtmgmt
     memory: 8192
     cpu: 2
     user_name: root

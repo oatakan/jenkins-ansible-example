@@ -1,5 +1,4 @@
 ---
-
 - name: find ami id for rhel 7
   amazon.aws.ec2_ami_info:
     owners: 309956199498
