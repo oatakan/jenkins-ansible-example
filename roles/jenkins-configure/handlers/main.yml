@@ -6,7 +6,7 @@
       ansible.builtin.service:
         name: jenkins
         state: restarted
-      register: restart_jenkins_handler # Renamed register to avoid conflict if this handler is called multiple times in a play
+      register: restart_jenkins_handler
       ignore_errors: true
 
     - name: Wait for Jenkins to start up after restart
