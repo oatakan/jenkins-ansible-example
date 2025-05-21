@@ -1,12 +1,11 @@
 ---
-
 - name: set credentials
   jenkins_script:
     url: "http://localhost:{{ jenkins2_config_http_port }}"
     script: "{{ lookup('template', 'set-credentials.groovy.j2') }}"
-    user: '{{ jenkins2_cli_username }}'
-    password: '{{ jenkins2_cli_password }}'
-    validate_certs: no
+    user: "{{ jenkins2_cli_username }}"
+    password: "{{ jenkins2_cli_password }}"
+    validate_certs: false
     timeout: 120
 
 - name: create tower configuration
@@ -15,8 +14,8 @@
     dest: "{{ jenkins2_home_directory }}/org.jenkinsci.plugins.ansible_tower.AnsibleTower.xml"
     owner: "{{ jenkins2_user }}"
     group: "{{ jenkins2_user }}"
-    mode: 0644
-  become: yes
+    mode: "0644"
+  become: true
 
 - include_tasks: plugin.yml
 

@@ -1,14 +1,13 @@
 ---
-
 - name: Restart Jenkins
-  service:
+  ansible.builtin.service:
     name: jenkins
     state: restarted
   register: restart_jenkins
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Wait for Jenkins to start up
-  uri:
+  ansible.builtin.uri:
     url: http://localhost:{{ jenkins2_config_http_port }}/login
     status_code: 200
     timeout: 5

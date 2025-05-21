@@ -10,25 +10,25 @@ nodes:
     role: jenkins
     app_name: jenkins_tower_demo
     networks:
-    - name: mgmt
-      ip: 192.168.1.53
-      netmask: 255.255.255.0
-      gateway: 192.168.1.254
-      domain: home.ad
-      dns_servers:
-      - 192.168.1.254
-      - 8.8.4.4
+      - name: mgmt
+        ip: 192.168.1.53
+        netmask: 255.255.255.0
+        gateway: 192.168.1.254
+        domain: home.ad
+        dns_servers:
+          - 192.168.1.254
+          - 8.8.4.4
     domain: home.ad
     dns_servers:
-    - 192.168.1.254
-    - 8.8.4.4
+      - 192.168.1.254
+      - 8.8.4.4
     customization:
       domain: home.ad
       dns_servers:
-      - 192.168.1.254
-      - 8.8.4.4
+        - 192.168.1.254
+        - 8.8.4.4
     memory: 8192
     cpu: 2
     template: "{{ infra_template_name|default('rhel93-x64-v1') }}"
     snapshot_src: Linked
-    linked_clone: True
+    linked_clone: true
