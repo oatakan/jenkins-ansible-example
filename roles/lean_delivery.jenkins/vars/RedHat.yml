@@ -9,6 +9,7 @@ jenkins_requirements:
   - openssh-clients
   - git
   - python{{ ansible_facts.python.version.major }}-pip
+  - python{{ ansible_facts.python.version.major }}-packaging
   - net-tools
   - wget
   - lsof

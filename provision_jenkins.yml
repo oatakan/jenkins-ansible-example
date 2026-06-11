@@ -89,6 +89,13 @@
           register: pip_install_status
           until: pip_install_status is succeeded
 
+        - name: Install Python packaging support
+          ansible.builtin.package:
+            name: python{{ ansible_facts.python.version.major }}-packaging
+            state: present
+          register: packaging_install_status
+          until: packaging_install_status is succeeded
+
         - name: Upgrade pip
           ansible.builtin.pip:
             name:
