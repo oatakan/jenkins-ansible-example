@@ -1,0 +1,71 @@
+---
+- name: Inspect Jenkins service health
+  hosts: "{{ jenkins_validation_hosts | default('jenkins') }}"
+  gather_facts: false
+  tasks:
+    - name: Read only operating system and host identity facts
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - '!min'
+          - distribution
+          - distribution_version
+          - architecture
+          - system
+        filter:
+          - ansible_distribution
+          - ansible_distribution_version
+          - ansible_architecture
+          - ansible_hostname
+      changed_when: false
+      no_log: true
+
+    - name: Read service state
+      ansible.builtin.service_facts:
+      changed_when: false
+      no_log: true
+
+    - name: Require Jenkins to be running and enabled
+      ansible.builtin.assert:
+        that:
+          - "'jenkins.service' in ansible_facts.services"
+          - ansible_facts.services['jenkins.service'].state == 'running'
+          - ansible_facts.services['jenkins.service'].status == 'enabled'
+        fail_msg: "jenkins.service must be running and enabled."
+
+    - name: Read the local Jenkins login endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ jenkins_validation_port | default(8080) | int }}/login"
+        method: GET
+        status_code: 200
+        return_content: false
+        follow_redirects: none
+        timeout: 10
+        use_netrc: false
+      register: _jenkins_validation_http
+      changed_when: false
+      no_log: true
+
+    - name: Require an HTTP 200 response and Jenkins version header
+      ansible.builtin.assert:
+        that:
+          - _jenkins_validation_http.status == 200
+          - _jenkins_validation_http.x_jenkins is defined
+          - _jenkins_validation_http.x_jenkins | string is match('^[0-9][A-Za-z0-9.+-]*$')
+        fail_msg: "The Jenkins login endpoint must return HTTP 200 and a valid X-Jenkins version header."
+
+    - name: Publish bounded Jenkins health evidence
+      ansible.builtin.set_stats:
+        per_host: false
+        data:
+          jenkins_validation:
+            inventory_hostname: "{{ inventory_hostname }}"
+            distribution: "{{ ansible_facts.distribution }}"
+            distribution_version: "{{ ansible_facts.distribution_version }}"
+            architecture: "{{ ansible_facts.architecture }}"
+            guest_name: "{{ ansible_facts.hostname }}"
+            jenkins_service_state: "{{ ansible_facts.services['jenkins.service'].state }}"
+            jenkins_service_status: "{{ ansible_facts.services['jenkins.service'].status }}"
+            http_status: "{{ _jenkins_validation_http.status }}"
+            endpoint_port: "{{ jenkins_validation_port | default(8080) | int }}"
+            jenkins_version: "{{ _jenkins_validation_http.x_jenkins }}"

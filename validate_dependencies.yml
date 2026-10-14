@@ -1,0 +1,131 @@
+---
+- name: Inspect installed project dependencies
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    _dependency_role: "{{ dependency_validation_role | default('ansible-role-kubevirt') }}"
+    _dependency_files: "{{ dependency_validation_files | default(['tasks/main.yml', 'tasks/provision_vm.yml', 'tasks/deprovision.yml', 'templates/redhat-vm.yml', 'defaults/main.yml']) }}"
+  tasks:
+    - name: Read the installed Python version
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+        filter: '*python*'
+      changed_when: false
+
+    - name: Require a safe project role and file list
+      ansible.builtin.assert:
+        that:
+          - _dependency_role is match('^[A-Za-z0-9][A-Za-z0-9_.-]*$')
+          - _dependency_role not in ['.', '..']
+          - _dependency_files is sequence
+          - _dependency_files is not string
+          - _dependency_files | length > 0
+        fail_msg: "Dependency validation requires a safe role name and a nonempty list of relative file paths."
+
+    - name: Require safe relative role file paths
+      ansible.builtin.assert:
+        that:
+          - item is match('^[A-Za-z0-9_./-]+$')
+          - not item.startswith('/')
+          - "'..' not in item.split('/')"
+        fail_msg: "Dependency validation accepts only safe relative role file paths."
+      loop: "{{ _dependency_files }}"
+
+    - name: Resolve unique project and configured search paths
+      ansible.builtin.set_fact:
+        _dependency_role_roots: "{{ ([playbook_dir ~ '/roles'] + (lookup('ansible.builtin.config', 'DEFAULT_ROLES_PATH') | list)) | map('realpath') | unique | list }}"
+        _dependency_collection_roots: "{{ ([playbook_dir ~ '/collections'] + (lookup('ansible.builtin.config', 'COLLECTIONS_PATHS') | list)) | map('realpath') | unique | list }}"
+
+    - name: Check project role candidates
+      ansible.builtin.stat:
+        path: "{{ item }}/{{ _dependency_role }}"
+        follow: true
+      loop: "{{ _dependency_role_roots }}"
+      register: _dependency_role_candidates
+      changed_when: false
+      no_log: true
+
+    - name: Require one unambiguous project role
+      ansible.builtin.assert:
+        that:
+          - _dependency_role_candidates.results | selectattr('stat.exists') | selectattr('stat.isdir') | list | length == 1
+        fail_msg: "Expected exactly one installed project role in the project and configured role paths."
+
+    - name: Select the resolved project role
+      ansible.builtin.set_fact:
+        _dependency_role_dir: "{{ (_dependency_role_candidates.results | selectattr('stat.exists') | selectattr('stat.isdir') | first).item ~ '/' ~ _dependency_role }}"
+        _dependency_role_path_label: >-
+          {{ 'project_roles' if
+             ((_dependency_role_candidates.results | selectattr('stat.exists') | selectattr('stat.isdir') | map(attribute='item') | first) == (playbook_dir ~ '/roles' | realpath))
+             else 'configured_roles_path_' ~
+             (_dependency_role_roots.index(_dependency_role_candidates.results | selectattr('stat.exists') | selectattr('stat.isdir') | map(attribute='item') | first) | string) }}
+
+    - name: Hash declared project role files
+      ansible.builtin.stat:
+        path: "{{ _dependency_role_dir }}/{{ item }}"
+        checksum_algorithm: sha256
+        follow: true
+      loop: "{{ _dependency_files }}"
+      register: _dependency_file_stats
+      changed_when: false
+      no_log: true
+
+    - name: Require declared files to exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.isreg
+          - item.stat.checksum is defined
+        fail_msg: "A declared project role file is missing or unreadable."
+      loop: "{{ _dependency_file_stats.results }}"
+      no_log: true
+
+    - name: Check kubevirt.core metadata in collection search order
+      ansible.builtin.stat:
+        path: "{{ item }}/ansible_collections/kubevirt/core/MANIFEST.json"
+        follow: true
+      loop: "{{ _dependency_collection_roots }}"
+      register: _dependency_kubevirt_manifests
+      changed_when: false
+      no_log: true
+
+    - name: Check kubernetes.core metadata in collection search order
+      ansible.builtin.stat:
+        path: "{{ item }}/ansible_collections/kubernetes/core/MANIFEST.json"
+        follow: true
+      loop: "{{ _dependency_collection_roots }}"
+      register: _dependency_kubernetes_manifests
+      changed_when: false
+      no_log: true
+
+    - name: Require installed collection metadata
+      ansible.builtin.assert:
+        that:
+          - _dependency_kubevirt_manifests.results | selectattr('stat.exists') | selectattr('stat.isreg') | list | length > 0
+          - _dependency_kubernetes_manifests.results | selectattr('stat.exists') | selectattr('stat.isreg') | list | length > 0
+        fail_msg: "Required collection metadata is missing from configured collection paths."
+
+    - name: Publish bounded dependency evidence
+      ansible.builtin.set_stats:
+        per_host: false
+        data:
+          dependency_validation:
+            role: "{{ _dependency_role }}"
+            role_path_label: "{{ _dependency_role_path_label }}"
+            role_file_sha256: "{{ dict(_dependency_file_stats.results | map(attribute='item') | zip(_dependency_file_stats.results | map(attribute='stat.checksum'))) }}"
+            ansible_version: "{{ ansible_version.full }}"
+            python_version: "{{ ansible_facts.python_version }}"
+            collections:
+              kubevirt.core: >-
+                {{ (lookup('ansible.builtin.file',
+                     (_dependency_kubevirt_manifests.results | selectattr('stat.exists') | selectattr('stat.isreg') | first).item
+                     ~ '/ansible_collections/kubevirt/core/MANIFEST.json')
+                     | from_json).collection_info.version }}
+              kubernetes.core: >-
+                {{ (lookup('ansible.builtin.file',
+                     (_dependency_kubernetes_manifests.results | selectattr('stat.exists') | selectattr('stat.isreg') | first).item
+                     ~ '/ansible_collections/kubernetes/core/MANIFEST.json')
+                     | from_json).collection_info.version }}
