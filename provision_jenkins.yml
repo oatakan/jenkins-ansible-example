@@ -50,6 +50,62 @@
       - pmd
       - warnings-ng
       - permissive-script-security
+  pre_tasks:
+    - name: Validate execution-context publication switch
+      ansible.builtin.assert:
+        that:
+          - publish_execution_context is undefined or publish_execution_context is boolean
+      no_log: true
+      tags: [always]
+
+    - name: Validate safe inventory-observed execution context fields
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname is string
+          - inventory_hostname | length > 0
+          - inventory_hostname | length <= 253
+          - inventory_hostname == (inventory_hostname | trim)
+          - "'@' not in inventory_hostname"
+          - "'://' not in inventory_hostname"
+          - "inventory_hostname is match('^[A-Za-z0-9_.:-]+$')"
+          - (ansible_host | default(inventory_hostname)) is string
+          - (ansible_host | default(inventory_hostname)) | length > 0
+          - (ansible_host | default(inventory_hostname)) | length <= 253
+          - (ansible_host | default(inventory_hostname)) == ((ansible_host | default(inventory_hostname)) | trim)
+          - "'@' not in (ansible_host | default(inventory_hostname))"
+          - "'://' not in (ansible_host | default(inventory_hostname))"
+          - "(ansible_host | default(inventory_hostname)) is match('^([A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?|[0-9A-Fa-f:.]+)$')"
+          - ansible_ssh_host is undefined
+          - ansible_ssh_port is undefined
+          - ansible_port is undefined or ((ansible_port is integer) and (ansible_port is not boolean) and (ansible_port >= 1) and (ansible_port <= 65535))
+          - ansible_connection is undefined or ((ansible_connection is string) and (ansible_connection | length > 0) and (ansible_connection | length <= 64) and (ansible_connection == (ansible_connection | trim)) and (ansible_connection is match('^[A-Za-z0-9_.-]+$')))
+          - vm_uid is undefined or ((vm_uid is string) and (vm_uid is match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')))
+      when: publish_execution_context | default(false)
+      no_log: true
+      tags: [always]
+
+    - name: Publish allowlisted execution context without VM UID
+      ansible.builtin.set_stats:
+        data: "{{ {'provision_execution_context': {inventory_hostname: {'ansible_host': ansible_host | default(inventory_hostname), 'ansible_port': ansible_port | default(22), 'ansible_connection': ansible_connection | default('ssh')}}} }}"
+        aggregate: true
+        per_host: false
+      when:
+        - publish_execution_context | default(false)
+        - vm_uid is undefined
+      no_log: true
+      tags: [always]
+
+    - name: Publish allowlisted execution context with VM UID
+      ansible.builtin.set_stats:
+        data: "{{ {'provision_execution_context': {inventory_hostname: {'ansible_host': ansible_host | default(inventory_hostname), 'ansible_port': ansible_port | default(22), 'ansible_connection': ansible_connection | default('ssh'), 'vm_uid': vm_uid}}} }}"
+        aggregate: true
+        per_host: false
+      when:
+        - publish_execution_context | default(false)
+        - vm_uid is defined
+      no_log: true
+      tags: [always]
+
   tasks:
     - name: Import EPEL GPG key
       ansible.builtin.rpm_key:
