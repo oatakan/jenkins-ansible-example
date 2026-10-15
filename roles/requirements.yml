@@ -31,7 +31,8 @@
 
 - src: geerlingguy.java
 
-- src: geerlingguy.jenkins
+- src: https://github.com/oatakan/ansible-role-jenkins
+  name: geerlingguy.jenkins
 
 - src: lean_delivery.java
 
