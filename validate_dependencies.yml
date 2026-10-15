@@ -8,6 +8,10 @@
     _dependency_role: "{{ dependency_validation_role | default('ansible-role-kubevirt') }}"
     _dependency_files: "{{ dependency_validation_files | default(['tasks/main.yml', 'tasks/provision_vm.yml', 'tasks/deprovision.yml', 'templates/redhat-vm.yml', 'defaults/main.yml']) }}"
     _dependency_collections: "{{ dependency_validation_collections | default(['kubevirt.core', 'kubernetes.core']) }}"
+    _dependency_validation_cleanup_probe: "{{ dependency_validation_cleanup_probe | default(false) }}"
+    _dependency_validation_cleanup_probe_files:
+      - tasks/select_deprovision_nodes.yml
+      - tasks/validate_deprovision_preconditions.yml
   tasks:
     - name: Read the installed Python version
       ansible.builtin.setup:
@@ -163,3 +167,124 @@
             ansible_version: "{{ ansible_version.full }}"
             python_version: "{{ ansible_facts.python_version }}"
             collections: "{{ _dependency_collection_versions }}"
+
+    - name: Require cleanup probe flag to be a boolean when supplied
+      ansible.builtin.assert:
+        that:
+          - dependency_validation_cleanup_probe is boolean
+        fail_msg: "The optional validation probe flag must be boolean."
+      when: dependency_validation_cleanup_probe is defined
+
+    - name: Run synthetic precondition validation probe
+      when: _dependency_validation_cleanup_probe | bool
+      no_log: true
+      block:
+        - name: Set synthetic selection and precondition inputs
+          ansible.builtin.set_fact:
+            labels:
+              vm.kubevirt.io/name: probe-vm
+            nodes:
+              - name: probe-vm
+            kubevirt_expected_vm_preconditions:
+              probe-vm:
+                uid: "00000000-0000-4000-8000-000000000001"
+                resourceVersion: "424242"
+          no_log: true
+
+        - name: Require the fixed role for the cleanup probe
+          ansible.builtin.assert:
+            that:
+              - _dependency_role == 'ansible-role-kubevirt'
+            fail_msg: "The cleanup probe is limited to its registered role."
+          no_log: true
+
+        - name: Require exact expected hashes for the cleanup probe task files
+          ansible.builtin.assert:
+            that:
+              - dependency_validation_cleanup_probe_sha256 is mapping
+              - dependency_validation_cleanup_probe_sha256.keys() | list | sort == _dependency_validation_cleanup_probe_files | sort
+              - dependency_validation_cleanup_probe_sha256.values() | select('string') | list | length == 2
+              - dependency_validation_cleanup_probe_sha256.values() | select('match', '^[0-9a-f]{64}$') | list | length == 2
+            fail_msg: "The cleanup probe requires exact hashes for its fixed task files."
+          no_log: true
+
+        - name: Hash the resolved cleanup probe task files before inclusion
+          ansible.builtin.stat:
+            path: "{{ _dependency_role_dir }}/{{ item }}"
+            checksum_algorithm: sha256
+            follow: true
+          loop: "{{ _dependency_validation_cleanup_probe_files }}"
+          register: _cleanup_probe_task_hashes
+          changed_when: false
+          no_log: true
+
+        - name: Require the resolved cleanup probe task files to match sealed hashes
+          ansible.builtin.assert:
+            that:
+              - item.stat.exists
+              - item.stat.isreg
+              - item.stat.checksum == dependency_validation_cleanup_probe_sha256[item.item]
+            fail_msg: "A cleanup probe task file did not match its sealed hash."
+          loop: "{{ _cleanup_probe_task_hashes.results }}"
+          no_log: true
+
+        - name: Run the installed role node selector
+          ansible.builtin.include_tasks:
+            file: "{{ _dependency_role_dir }}/tasks/select_deprovision_nodes.yml"
+            apply:
+              no_log: true
+          no_log: true
+
+        - name: Publish bounded synthetic type evidence before validation
+          ansible.builtin.set_stats:
+            per_host: false
+            data:
+              cleanup_precondition_probe:
+                ok: false
+                selected_one_node: "{{ kubevirt_deprovision_nodes | length == 1 }}"
+                resource_version_is_string: "{{ kubevirt_expected_vm_preconditions['probe-vm'].resourceVersion is string }}"
+                resource_version_is_integer: "{{ kubevirt_expected_vm_preconditions['probe-vm'].resourceVersion is integer }}"
+                resource_version_type_is_string: "{{ kubevirt_expected_vm_preconditions['probe-vm'].resourceVersion | type_debug == 'str' }}"
+          no_log: false
+
+        - name: Check for the installed role named precondition validator
+          ansible.builtin.stat:
+            path: "{{ _dependency_role_dir }}/tasks/validate_deprovision_preconditions.yml"
+            follow: true
+          register: _cleanup_probe_validator
+          changed_when: false
+          no_log: true
+
+        - name: Require the installed role named precondition validator
+          ansible.builtin.assert:
+            that:
+              - _cleanup_probe_validator.stat.exists
+              - _cleanup_probe_validator.stat.isreg
+            fail_msg: "The installed role does not provide its named precondition validator."
+          no_log: true
+
+        - name: Validate every selected VM deletion precondition
+          ansible.builtin.include_tasks:
+            file: "{{ _dependency_role_dir }}/tasks/validate_deprovision_preconditions.yml"
+            apply:
+              no_log: true
+          no_log: true
+
+        - name: Require the selector to return exactly one synthetic node
+          ansible.builtin.assert:
+            that:
+              - (kubevirt_deprovision_nodes | map(attribute='name') | list) == ['probe-vm']
+            fail_msg: "The installed role selector did not preserve the synthetic selection."
+          no_log: true
+
+        - name: Publish bounded synthetic type evidence
+          ansible.builtin.set_stats:
+            per_host: false
+            data:
+              cleanup_precondition_probe:
+                ok: true
+                selected_one_node: "{{ (kubevirt_deprovision_nodes | length == 1) | bool }}"
+                resource_version_is_string: "{{ kubevirt_expected_vm_preconditions['probe-vm'].resourceVersion is string }}"
+                resource_version_is_integer: "{{ kubevirt_expected_vm_preconditions['probe-vm'].resourceVersion is integer }}"
+                resource_version_type_is_string: "{{ kubevirt_expected_vm_preconditions['probe-vm'].resourceVersion | type_debug == 'str' }}"
+          no_log: false
